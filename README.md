@@ -1,4 +1,4 @@
-Localness of search engine results
+Search Engine Geography
 =============================================
 This repository contains datasets produced for the study described in:
 

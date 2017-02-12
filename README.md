@@ -2,7 +2,10 @@ Search Engine Geography
 =============================================
 This repository contains datasets produced for the study described in:
 
-Andrea Ballatore, Mark Graham, Shilad Sen (2017) *Digital Hegemonies: The localness of search engine results*, Annals of the American Association of Geographers
+[Andrea Ballatore](http://sites.google.com/site/andreaballatore), 
+[Mark Graham](http://www.markgraham.space), 
+[Shilad Sen](https://www.macalester.edu/academics/mscs/facultystaff/shiladsen)
+(2017) *Digital Hegemonies: The localness of search engine results*, Annals of the American Association of Geographers
 
 ## Abstract
 
@@ -71,3 +74,8 @@ Every day, billions of Internet users rely on search engines to find information
 `Documents, Citable_documents, Citations, Self_Citations, Citations_per_Document, H_index`: Academic publishing information (SciMago)
 
 **google_localness_maps.pdf:** High-resolution maps.
+
+## License
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+

@@ -2,11 +2,15 @@ Search Engine Geography
 =============================================
 This repository contains datasets produced for the study described in:
 
-A. Ballatore, M. Graham, S. Sen (2017) *Digital Hegemonies: The localness of search engine results*, Annals of the American Association of Geographers
+Andrea Ballatore, Mark Graham, Shilad Sen (2017) *Digital Hegemonies: The localness of search engine results*, Annals of the American Association of Geographers
 
-**Abstract**: Every day, billions of Internet users rely on search engines to find information about places to make decisions about tourism, shopping, and countless other economic activities. In an opaque process, search engines assemble digital content produced in a variety of locations around the world and make it available to large cohorts of consumers. Although these representations of place are increasingly important and consequential, little is known about their characteristics and possible biases. Analysing a corpus of Google search results generated for 188 capital cities, this article investigates the geographic dimension of search results, focusing on searches such as "Lagos" and "Rome" on different localized versions of the engine. This study answers the questions: To what degree is this city-related information locally produced and diverse? Which countries are producing their own representations and which are represented by others? Through a new indicator of localness of search results, we identify the factors that contribute to shape this uneven digital geography, combining several development indicators. The development of the publishing industry and scientific production appears as a fairly strong predictor of localness of results. This empirical knowledge will support efforts to curb the digital divide, promoting a more inclusive, democratic information society.
+## Abstract
+
+Every day, billions of Internet users rely on search engines to find information about places to make decisions about tourism, shopping, and countless other economic activities. In an opaque process, search engines assemble digital content produced in a variety of locations around the world and make it available to large cohorts of consumers. Although these representations of place are increasingly important and consequential, little is known about their characteristics and possible biases. Analysing a corpus of Google search results generated for 188 capital cities, this article investigates the geographic dimension of search results, focusing on searches such as "Lagos" and "Rome" on different localized versions of the engine. This study answers the questions: To what degree is this city-related information locally produced and diverse? Which countries are producing their own representations and which are represented by others? Through a new indicator of localness of search results, we identify the factors that contribute to shape this uneven digital geography, combining several development indicators. The development of the publishing industry and scientific production appears as a fairly strong predictor of localness of results. This empirical knowledge will support efforts to curb the digital divide, promoting a more inclusive, democratic information society.
 
 **Keywords:** Internet geography, search engines, Google, localness, digital place
+
+## Datasets
 
 **google_localness_dataset_summary.csv:** Summary of localness results.
 

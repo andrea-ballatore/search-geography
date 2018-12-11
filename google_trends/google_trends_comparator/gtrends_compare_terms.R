@@ -29,6 +29,8 @@ TIME_SPAN = "today 12-m"
 DIGITS = 4
 # weak signal threshold
 MIN_INDEX = 1
+# delay in seconds
+DELAY_SECS = .5
 
 # utils ----
 sort_df <- function( df, col, asc=T ){
@@ -113,12 +115,13 @@ transform_gtrends_idx = function( q1term2, q2term2, q2term3){
 # Get GT data from API (with built-in delay)
 call_gtrends_api_for_pairs = function(term_pairs, time_span, geoscope=''){
   # get google trends for each pair
+  i = 0
   resdf = foreach_row_in_df(term_pairs, function(r){
     x = as.character(r$x)
     y = as.character(r$y)
-    
-    print(paste('  ',x,'<>',y))
-    Sys.sleep(1) # pause in secs
+    i <<- i+1
+    print(paste0('  ',x,' <> ',y,' [',i,'/',nrow(term_pairs),']'))
+    Sys.sleep(DELAY_SECS) # pause in secs
     # call Google Trends API (slow)
     df = gtrends(c(x,y), geo=geoscope, time=time_span)
     # extract results
@@ -217,6 +220,9 @@ compare_google_trends_terms = function( comptermdf ){
   saveRDS(rankdf,debug_fn)
   print(paste('Debug dataset written in',debug_fn))
   
+  rankdf$term = as.character(rankdf$term)
+  rankdf = sort_df(rankdf, 'term')
+  
   # rescale results in range [min, 1000]
   simplrankdf = rescale_index1000(rankdf)
   simplrankdf
@@ -232,7 +238,7 @@ print(search_terms)
 
 term_pairs = get_all_pairs( sort(unique(search_terms)) )
 
-print("Retrieve Google Trends data from API")
+print(paste0("Retrieve Google Trends data from API (",nrow(term_pairs),' pairs)'))
 resdf = call_gtrends_api_for_pairs( term_pairs, TIME_SPAN, geoscope = '' )
 
 # save results

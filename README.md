@@ -1,7 +1,7 @@
 Search Engine Geography
 =============================================
 This repository contains tools and datasets about search engine geography
-by [Andrea Ballatore](http://aballatore.space).
+by [Andrea Ballatore](http://aballatore.space) and colleagues.
 
 ## Abstract
 
@@ -9,7 +9,7 @@ by [Andrea Ballatore](http://aballatore.space).
 
 ## Contents
 
-`google_localness`: data from a study on the localness of search results
+`google_localness`: data from a study on the localness of search results.
 
 `google_trends/google_trends_comparator`: an R tool to compare 5+ search terms in Google Trends.
 

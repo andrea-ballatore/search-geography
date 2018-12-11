@@ -1,28 +1,26 @@
 Google Trends comparator for 5+ terms
 =============================================
 
-Authors: [Andrea Ballatore](http://aballatore.space), with contributions from [Simon Scheider](http://www.geographicknowledge.de)
+**Authors:** [Andrea Ballatore](http://aballatore.space), with contributions from [Simon Scheider](http://www.geographicknowledge.de)
 
 **Keywords:** Internet geography, search engines, Google Trends, R
 
-Dependent on R packages: `gtrendsR`, `foreach`, `iterators`, `scales`.
+**Dependencies:** R packages `gtrendsR`, `foreach`, `iterators`, `scales`
 
 ## Abstract
 
 The `gtrends_compare_terms.R` script takes a list of search terms in `input/search_terms.txt`
-and generates a Google Trends index rescaled in 0 and 1000.
+and generates a **Google Trends index** rescaled in 0 and 1000.
 The tool overcomes the limitation of Google Trends to 5 terms, supporting an arbitrary
-number of terms.
-
-The results are written in CSV format in the `output` folder.
-
+number of terms. The results are written in CSV format in the `output` folder. 
+The API calls are slowed down with a delay.
 For debugging purposes, the script also produces rds files with the complete dataset.
 
-For example, for 10 terms Austria, Belgium, Cyprus, Denmark, Estonia, Finland, 
-Germany, Greece, Hungary, and Italy,
+For example, for 10 terms *Austria, Belgium, Cyprus, Denmark, Estonia, Finland, 
+Germany, Greece, Hungary, and Italy*,
 the script produces this table, where `scaled_hits` is the Google Trends index, 
 and `hits1000` is the same value rescaled between 0 and 1000 for readability.
-Note that hits is the *average of the Google Trends index* in the selected `time_span`.
+Note that hits is the **average of the Google Trends index** in the selected `time_span`.
 
 | term    | scaled_hits | hits1000 | collected_at     | time_span             |
 |---------|-------------|----------|------------------|-----------------------|

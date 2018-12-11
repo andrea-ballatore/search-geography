@@ -5,7 +5,7 @@ Authors:
 [Andrea Ballatore](http://aballatore.space),
 [Simon Scheider](http://www.geographicknowledge.de),
 
-**Keywords:** Internet geography, search engines, Google Trends
+**Keywords:** Internet geography, search engines, Google Trends, R
 
 ## Abstract
 

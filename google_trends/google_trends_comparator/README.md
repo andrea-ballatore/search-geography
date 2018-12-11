@@ -2,8 +2,8 @@ Google Trends comparator for 5+ terms
 =============================================
 
 Authors:
-[Andrea Ballatore](http://aballatore.space),
-[Simon Scheider](http://www.geographicknowledge.de),
+[Andrea Ballatore](http://aballatore.space) and
+[Simon Scheider](http://www.geographicknowledge.de)
 
 **Keywords:** Internet geography, search engines, Google Trends, R
 

@@ -1,0 +1,8 @@
+1) go for the "city", "town" or "capital", "municipality", "village", "neighborhood" search instead of pure text search
+2)  Use term + containing municipality term,
+
+
+if municipality, the  always  option 1
+if not, then:
+ if not in list of difficult cases (Zuid, Noord, :
+	first 1), the  2) 

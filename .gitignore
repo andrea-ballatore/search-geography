@@ -3,3 +3,5 @@ google_trends/tmp/gtrends_results_df.rds
 .Rproj.user
 google_trends/.RData
 google_trends/.Rhistory
+google_trends/google_trends_comparator/.Rhistory
+google_trends/google_trends_comparator/google_trends.Rproj

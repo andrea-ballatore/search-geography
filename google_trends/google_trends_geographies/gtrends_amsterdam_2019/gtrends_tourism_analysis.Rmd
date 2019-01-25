@@ -1,0 +1,1096 @@
+---
+title: "Gtrends Tourism Analysis"
+output: 
+html_document:
+self_contained: false
+---
+  
+<style>
+  pre:not([class]) {
+    color: white;
+    background-color: #272822;
+  }
+</style>
+  
+# setup 
+
+```{r setup, echo=FALSE, message=FALSE}
+library(pacman)
+
+#devtools::install_github("PMassicotte/gtrendsR") # not working
+#devtools::install_github('diplodata/gtrendsR') # fix that also doesn't work
+pacman::p_load(readr,rvest,urltools,uuid,RSQLite,rjson,rgdal,curl,gtrendsR,jsonlite,classInt,grid,
+               dplyr,tmap,rmapshaper,ggplot2,reshape2,foreach,gtools,tmaptools,lattice,rgeos,raster)
+
+CUR_DATE = substr(as.character(Sys.time()),0,10)
+#OUT_DIR = paste0('tmp/NL_gtrends_',CUR_DATE,'/')
+OUT_DIR = paste0('tmp/NL_gtrends/')
+dir.create(OUT_DIR, showWarnings = FALSE)
+
+EU_COUNTRIES = c( 
+ 'AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
+ 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'GB'
+)
+
+gClip <- function(shp, bb, prj, buff){
+  if(class(bb) == "matrix") b_poly <- as(extent(as.vector(t(bb))), "SpatialPolygons")
+  else b_poly <- as(extent(bb), "SpatialPolygons")
+  proj4string(b_poly) = prj
+  b_poly = gBuffer( b_poly, width = buff, byid = T )
+  gIntersection(shp, b_poly, byid = TRUE)
+}
+
+parse_gt_hits <- function( hits ){
+  hits = replace(hits, hits=='<1', .5) # <1 ----> 0.5
+  h = as.numeric(hits)
+  h[is.na(h)] = 0 # replace NAs with 0
+  return(h)
+}
+
+FUN_col_exists <- function(df, colnames){
+  return(all(colnames %in% colnames(df)))
+}
+
+sort_df <- function( df, col, asc=T ){
+  sdf = df[ with(df, order(df[,c(col)], decreasing = !asc)), ]
+  return(sdf)
+}
+
+countries_sdf = readOGR('geodata/world_borders/ne_50m_admin_0_countries_2017/ne_50m_admin_0_countries.shp')
+
+countries_sdf_simpl = rmapshaper::ms_simplify(countries_sdf, keep = .08, keep_shapes = T )
+countries_sdf_simpl = spTransform(countries_sdf_simpl, CRS('+proj=robin'))
+countries_sdf_simpl = subset( countries_sdf_simpl, countries_sdf_simpl$ISO_A2 != 'AQ' )
+
+# +proj=robin +proj=wintri
+
+# get countries generic data
+names(countries_sdf_simpl)
+countries_data = countries_sdf_simpl@data[,c('ISO_A2','NAME','POP_EST',
+                                             'GDP_MD_EST','ECONOMY','INCOME_GRP','CONTINENT',
+                                             'REGION_UN','SUBREGION','REGION_WB')]
+countries_data = subset(countries_data, countries_data$ISO_A2 != '-99')
+summary(countries_data)
+
+save_results <- function( df, filename ){
+  dir.create(OUT_DIR, showWarnings = FALSE)
+  fn = paste0(OUT_DIR,filename,'.tsv')
+  fnbin = paste0(OUT_DIR,filename,'.rds')
+  saveRDS( df, file = fnbin, compress=T )
+  print(paste('save_results',fn))
+  write_tsv( df, fn, append = F, na = '')
+}
+
+FUN_subgroups <- function( df, splitcols, funct ){
+  stopifnot(nrow(df)>0)
+  resdf <- foreach(block=split(df, df[,splitcols]), 
+    .combine='rbind', .errorhandling="stop") %do% {
+    if (nrow(block) == 0) return(NULL)
+    return( funct(block) )
+  }
+  return(resdf)
+}
+
+bivariate.choropleth <- function(fnout, bivmap.dataset, bivmap.vars, bivmap.labels, bivmap.style){
+  pdf(fnout)
+  bivmap.sdf <- bivmap.dataset[
+    !is.na(bivmap.dataset@data[,bivmap.vars[1]]) &
+    !is.na(bivmap.dataset@data[,bivmap.vars[2]]) &
+    !is.infinite(bivmap.dataset@data[,bivmap.vars[1]]) &
+    !is.infinite(bivmap.dataset@data[,bivmap.vars[2]])
+    ,c(bivmap.vars,'NAME')]
+  colnames(bivmap.sdf@data) <- c("xvar","yvar",'NAME')
+  #View(bivmap.sdf@data)
+  # find bins for 2 vars
+  bivmap.sdf@data$xcat <- findCols(classIntervals( bivmap.sdf@data$xvar, n=3, bivmap.style))
+  cat(bivmap.vars[1], "breaks (x-axis):\n")
+  print(classIntervals( bivmap.sdf@data$xvar, n=3, bivmap.style))
+  bivmap.sdf@data$ycat <- findCols(classIntervals( bivmap.sdf@data$yvar, n=3, bivmap.style))
+  cat(bivmap.vars[2], "breaks (y-axis):\n")
+  print(classIntervals( bivmap.sdf@data$yvar, n=3, bivmap.style))
+  
+  bivmap.sdf@data$bicat <- bivmap.sdf@data$xcat + (3 * (bivmap.sdf@data$ycat - 1))
+  bvColors=c("#e8e8e8","#e4acac","#c85a5a",
+             "#b0d5df","#ad9ea5","#985356",
+             "#64acbe","#627f8c","#574249")
+  #bvColors <- c("#f3f3f3","#c2f0ce","#8ae1ae",
+  #            "#eac5dd","#9ec5d3","#7ec5b1",
+  #            "#e6a2d0","#bb9fce","#7a8eae")
+  bivmap <- 
+    add_nl_basemap(bivmap.sdf,'gray89') +
+    tm_shape(bivmap.sdf) +
+    tm_fill("bicat", style="cat", palette=bvColors, border.alpha=0, 
+            legend.show=FALSE, auto.palette.mapping = FALSE) +
+    tm_borders(col = 'white',lwd = 0.8) +
+    tm_text('NAME', size = .7, auto.placement = T) +
+    my_scale_bar() + #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+    tm_layout(frame=FALSE,bg.color = SEA_COLOUR) + tm_legend(scale=0.75)
+  
+  suppressWarnings(print( bivmap ))
+  vp <- viewport(x=.85, y=.15, width=.3, height=.3)
+  pushViewport(vp)
+  print(levelplot(matrix(1:9, nrow=3), axes=FALSE, col.regions=bvColors,
+                  xlab=list(label=bivmap.labels[1],cex=0.7), ylab=list(label=bivmap.labels[2],cex=0.7), 
+                  cuts=8, colorkey=FALSE,
+                  scales=list(draw=0)),
+        newpage=FALSE)
+  popViewport()
+  dev.off()
+}
+
+# create outfolders
+dir.create('tmp',showWarnings = F)
+#dir.create('tmp/pages',showWarnings = F)
+
+# ------------
+# Load GM shapefile
+# ------------
+ams_gm_sdf = readRDS('geodata/netherlands_L1_gm_sdf.rds')
+ams_gm_sdf_simpl = rmapshaper::ms_simplify(ams_gm_sdf, keep = .007, keep_shapes = T )
+# projection for the Netherlands
+utmprj = CRS('+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs ')
+ams_gm_sdf_simpl = spTransform(ams_gm_sdf_simpl, utmprj)
+
+ams_gm_sdf_simpl$tot_pop = ams_gm_sdf_simpl$AANT_INW
+
+# ------------
+# Load NL bounds shapefile
+# ------------
+nl_bounds = readOGR('geodata/NL_admin_boundaries/NLD_adm1.shp')
+nl_bounds = subset( nl_bounds, nl_bounds$ID_1 != 6) # remove water object
+nl_bounds_sdf_simpl = rmapshaper::ms_simplify(nl_bounds, keep = .12, keep_shapes = T )
+nl_bounds_sdf_simpl = spTransform(nl_bounds_sdf_simpl, utmprj)
+rm(nl_bounds)
+
+# ----
+# CARTOGRAPHIC SETTINGS
+# ----
+#bbox(nl_bounds_sdf_simpl)
+buff = 20000
+nl_bounds_sdf_simpl_un = gUnaryUnion(nl_bounds_sdf_simpl)
+ # write file for inset map
+writeOGR(obj = nl_bounds_sdf_simpl, 'tmp/nl_boundary_simplified.shp',driver = 'ESRI Shapefile',layer = 'nl_bounds_sdf_simpl')
+nl_bounds_sdf_clipped = gClip( nl_bounds_sdf_simpl_un, bbox(ams_gm_sdf_simpl), utmprj, buff)
+#plot(nl_bounds_sdf_clipped)
+rm(nl_bounds_sdf_simpl_un,nl_bounds_sdf_simpl,buff)
+
+SCALE_BREAKS = c(0,5,10)
+SEA_COLOUR = 'white'
+#SEA_COLOUR = 'lightblue1'
+
+#DIV_PALETTE = 'RdBu'
+#DIV_PALETTE = 'RdYlBu'
+DIV_PALETTE = 'PRGn'
+
+#CHORO_BORDER_COL = 'gray70'
+CHORO_BORDER_COL = 'white'
+
+add_nl_basemap = function( content_sdf, land_col = 'gray93' ){
+  nl_bnds = nl_bounds_sdf_clipped
+  content_sdf = spTransform(content_sdf, proj4string(nl_bnds))
+  env = gEnvelope(gUnionCascaded(content_sdf), byid = T)
+  env = gEnvelope(gBuffer(env, byid = T, width = 3000))
+  #print(sdf)
+  nl_bnds = gBuffer(nl_bnds, byid = T, width = -300)
+  nl_bnds = gIntersection(nl_bnds, env, byid = T)
+  #env = as(extent(gUnionCascaded(content_sdf)), "SpatialPolygons")
+  proj4string(env) = proj4string(content_sdf)
+  #, byid = T, width=5000, capStyle = 'SQUARE')
+  tm_shape(nl_bnds) +
+  #tm_borders(col = 'gray80', lty = 'dashed', alpha = 1)
+  tm_borders(col = 'gray93', lty = 'solid', alpha = 1, lwd = 3) +
+  tm_fill(col = land_col) +
+  tm_shape(env) +
+  tm_borders(col = 'gray50', lty = 'solid', alpha = 1, lwd = 1)
+}
+print(add_nl_basemap(gm_sdf,'red'))
+
+my_scale_bar = function(){
+  tm_scale_bar(width=0.11,position=c("left","bottom"),breaks = SCALE_BREAKS, size=.7)
+}
+```
+
+
+# Get Google country labels
+
+```{r}
+
+google_countries = read_tsv('data/google/google_country_names.csv',na = '')
+google_countries$ON_GOOGLE = T
+nrow(google_countries)
+#write_tsv(google_countries,'tmp/google_country_names.tsv', append = F, na = '')
+
+countries_df = countries_sdf@data[,c("ISO_A2","NAME","NAME_LONG")]
+
+m = merge(google_countries, countries_df, by.x = 'GOOGLE_NAME', 
+          by.y = 'NAME_LONG', all=T)
+m$NAME = NULL
+summary(m)
+nrow(m)
+#View(m)
+
+write_tsv( subset(m,!is.na(m$ISO_A2)), 'tmp/countries_2017_iso_complete.tsv', append = F, na = '')
+write_tsv( subset(m,is.na(m$ISO_A2)), 'tmp/countries_2017_iso_missing.tsv', append = F, na = '')
+
+# merge all google labels
+missing_df = read_tsv('data/google/countries_2017_iso_missing_manual_entries.tsv')
+missing_df = subset(missing_df,missing_df$ISO_A2!='MISSING')
+
+df = subset(m,!is.na(m$ISO_A2))
+google_countries_df = rbind(df,missing_df)
+google_countries_df = subset(google_countries_df,google_countries_df$ON_GOOGLE==T)
+#View(google_countries_df)
+google_countries_df$ON_GOOGLE = NULL
+saveRDS(google_countries_df, 'data/google/google_country_names_ISO.rds')
+
+rm(m,countries_df,google_countries_df)
+```
+
+# Analyse Amsterdam GM municip
+
+
+## Load data
+```{r}
+# Load Amsterdam data ---------------------------------
+#muni_sdf = readRDS( file = 'geodata/netherlands_municipalities_sdf.rds' )
+#quar_sdf = readRDS( file = 'geodata/netherlands_quarters_sdf.rds' )
+#neig_sdf = readRDS( file = 'geodata/netherlands_neighbourhoods_sdf.rds' )
+
+# gtrends data
+GT_DATA_FOLDER = 'data/NL_gtrends/NL_gtrends_2018-11-03/'
+
+gt_time_df = readRDS( file = file.path(GT_DATA_FOLDER,'interest_over_time_df.rds') )
+nrow(gt_time_df)
+summary(gt_time_df)
+gt_time_df$hits = parse_gt_hits(gt_time_df$hits)
+gt_time_df$keyword = as.factor(gt_time_df$keyword)
+gt_time_df$GEOUNIT_CODE = as.factor(gt_time_df$GEOUNIT_CODE)
+gt_time_df$GEOUNIT_TYPE = as.factor(gt_time_df$GEOUNIT_TYPE)
+summary(gt_time_df)
+
+names(gt_time_df)
+#
+gt_time_df_summary = gt_time_df %>%
+  group_by(GEOUNIT_CODE, QUERY_BASETERM, keyword, GEOUNIT_TYPE) %>%
+  summarise(
+    n = n(),
+    hits_min = min(hits, na.rm = T),
+    hits_mean = mean(hits, na.rm = T),
+    hits_median = median(hits, na.rm = T),
+    hits_max = max(hits, na.rm = T)
+  )
+gt_time_df_summary$hits_mean = round(gt_time_df_summary$hits_mean,1)
+View(gt_time_df_summary)
+
+write_tsv( gt_time_df_summary, 'tmp/gt_time_summary.tsv', append = F, na = '')
+```
+
+## Growth maps within GM
+
+```{r}
+
+# ------------
+# Google trends over time within GM
+# ------------
+GT_DATA_FOLDER = 'data/NL_gtrends/NL_gtrends_2018-11-07/'
+gt_df = readRDS( file = file.path(GT_DATA_FOLDER,'nl_gm_over_time_df.rds') )
+gt_df$keyword = as.factor(gt_df$keyword)
+gt_df$GTRENDS_MODE = as.factor(gt_df$GTRENDS_MODE)
+names(gt_df)
+summary(gt_df)
+View(gt_df)
+
+map_label = '[Growth map]'
+
+length(unique(gt_df$date))
+gt_df$datestr = substr( as.character(gt_df$date), 0, 7 )
+gt_df$dateyy = as.factor(as.numeric( substr( as.character(gt_df$datestr), 0, 4 )))
+gt_df$datemm = as.factor(substr( as.character(gt_df$datestr), 6, 7 ))
+
+gt_df_quart = subset( gt_df, gt_df$datemm %in% c('01','04','07','10') )
+gt_df_quart = subset( gt_df_quart, gt_df_quart$dateyy %in% c(2008, 2011, 2014, 2017) )
+summary(gt_df_quart)
+nrow(gt_df_quart)
+View(gt_df_quart)
+
+gt_df_quart_diff = FUN_subgroups(gt_df_quart, c('low_search_volume','GTRENDS_MODE','geo','GEOUNIT_CODE'), function(block){
+  #print(nrow(block))
+  block = sort_df(block,'date')
+  block$hits_diff = lag( block$hits ) - block$hits
+  return(block)
+})
+
+# get yearly summary 
+gt_df = subset(gt_df,gt_df$low_search_volume==F)
+gt_df_quart_sum = FUN_subgroups(gt_df, c('low_search_volume','GTRENDS_MODE','geo','dateyy','GEOUNIT_CODE'), function(block){
+  #print(nrow(block))
+  row = data.frame(
+    low_search_volume = unique(block$low_search_volume),
+    GTRENDS_MODE = unique(block$GTRENDS_MODE),
+    GEOUNIT_CODE = unique(block$GEOUNIT_CODE),
+    geo = unique(block$geo),
+    dateyy = unique(block$dateyy),
+    hits_sum = sum(block$hits),
+    hits_mean = round(mean(block$hits,rm.na = T),2)
+  )
+  return(row)
+})
+
+# ---------------
+# get summary 2007 vs 2017 with diff (just one value)
+# ---------------
+gt_df_quart_sum_10y = subset(gt_df_quart_sum,gt_df_quart_sum$dateyy %in% c(2007,2017))
+gt_df_quart_sum_diff = FUN_subgroups(gt_df_quart_sum_10y, c('low_search_volume','GTRENDS_MODE','geo','GEOUNIT_CODE'), function(block){
+  #print(nrow(block))
+  block = sort_df(block,'dateyy')
+  stopifnot(nrow(block)==2)
+  block$hits_sum_diff = block$hits_sum - lag( block$hits_sum )
+  block$hits_sum_diff_pc = round((block$hits_sum_diff / lag( block$hits_sum))*100,2)
+  return(block)
+})
+rm(gt_df_quart_sum_10y)
+gt_df_quart_sum_diff2017 = subset(gt_df_quart_sum_diff, gt_df_quart_sum_diff$dateyy == 2017)
+#View(gt_df_quart_sum_diff2017)
+writexl::write_xlsx(gt_df_quart_sum_diff2017,paste0(OUT_DIR,'gt_gm_withingm_sum_diff_10years.xlsx'))
+
+# generate growth maps showing 10 years difference
+FUN_subgroups(gt_df_quart_sum_diff2017, c('low_search_volume','GTRENDS_MODE','geo'), function(block){
+   row = data.frame(
+    low_search_volume = unique(block$low_search_volume),
+    GTRENDS_MODE = unique(block$GTRENDS_MODE),
+    geo = unique(block$geo)
+  )
+  tit = paste(map_label,'low volume:',row$low_search_volume,'; mode:',row$GTRENDS_MODE,'; source:',row$geo,'; date: 2007-2017')
+  fn = paste0(OUT_DIR,'gm_trend_map-within-10y-',row$low_search_volume,'-',row$GTRENDS_MODE,'-',row$geo,'-diff_2007_2017.pdf')
+  print(fn)
+  print(nrow(block))
+  stopifnot(nrow(ams_gm_sdf_simpl)==nrow(block))
+  
+  gm_gtrends_sdf = merge(ams_gm_sdf_simpl, block, by.x='CODE', by.y='GEOUNIT_CODE', all.x=T)
+  
+  gtrends_map <- add_nl_basemap(gm_gtrends_sdf) + 
+    tm_shape(gm_gtrends_sdf) +
+      tm_fill(col="hits_sum_diff_pc", style="equal", palette=DIV_PALETTE, n = 5, 
+              legend.format=list(list(digits=0))) + #quantile , 
+      #tm_scale_bar(width=0.15,position=c("left","bottom")) +   
+      #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+      tm_layout(frame=FALSE,title = tit,legend.position = c('right','bottom'), title.size = 1) + tm_legend(scale=0.75) +
+     tm_scale_bar(position=c("left", "bottom"),breaks = SCALE_BREAKS)+
+      #tm_text(text = "ISO_A2",size = 0.1) +
+      tm_borders(col = CHORO_BORDER_COL, lty = 1.1) +
+      tm_text('NAME',size = 0.65)
+  save_tmap(gtrends_map,fn)
+})
+
+rm(gt_df_quart_sum_diff2017)
+
+# ---------------
+# get yearly summary from 2007 to 2017 with diff (each YEAR)
+# ---------------
+gt_df_quart_sum_sub = subset( gt_df_quart_sum, gt_df_quart_sum$dateyy %in% c(2008, 2011, 2014, 2017) )
+
+gt_df_quart_sum_yearly_diff = FUN_subgroups(gt_df_quart_sum_sub, c('low_search_volume','GTRENDS_MODE','geo','GEOUNIT_CODE'), function(block){
+  #print(nrow(block))
+  block = sort_df(block,'dateyy')
+  block$hits_sum_diff = block$hits_sum - lag( block$hits_sum )
+  block$period_years = paste0(lag(block$dateyy),'-',block$dateyy)
+  block$hits_sum_diff_pc = round((block$hits_sum_diff / lag( block$hits_sum))*100,2)
+  return(block)
+})
+gt_df_quart_sum_yearly_diff = subset(gt_df_quart_sum_yearly_diff, gt_df_quart_sum_yearly_diff$dateyy != 2008)
+gt_df_quart_sum_yearly_diff$low_search_volume = NULL
+gt_df_quart_sum_yearly_diff$dateyy = NULL
+gt_df_quart_sum_yearly_diff$period_years = as.factor(gt_df_quart_sum_yearly_diff$period_years)
+#View(gt_df_quart_sum_yearly_diff)
+writexl::write_xlsx(gt_df_quart_sum_yearly_diff,paste0(OUT_DIR,'gt_gm_withingm_sum_diff_yearly.xlsx'))
+
+# generate maps from gt_df_quart_sum_yearly_diff
+
+#bin_breaks = classIntervals(gt_df_quart_sum_yearly_diff$hits_sum_diff_pc, 5, style = 'quantile')$brks
+bin_breaks = c(-65, -15,  -5,  5,   15,  65)
+TODO
+FUN_subgroups(gt_df_quart_sum_yearly_diff, c('GTRENDS_MODE','geo','period_years'), function(block){
+   row = data.frame(
+    GTRENDS_MODE = unique(block$GTRENDS_MODE),
+    geo = unique(block$geo),
+    period_years = unique(block$period_years)
+  )
+  tit = paste(map_label,'mode:',row$GTRENDS_MODE,'; source:',row$geo,'; period:', row$period_years)
+  fn = paste0(OUT_DIR,'gm_trend_map-within-','-',row$GTRENDS_MODE,'-',row$geo,
+              '--',row$period_years,'.pdf')
+  print(fn)
+  print(nrow(block))
+  stopifnot(nrow(ams_gm_sdf_simpl)==nrow(block))
+  
+  gm_gtrends_sdf = merge(ams_gm_sdf_simpl, block, by.x='CODE', by.y='GEOUNIT_CODE', all.x=T)
+  
+  gtrends_map <- 
+      add_nl_basemap(gm_gtrends_sdf) + 
+      tm_shape(gm_gtrends_sdf) +
+      tm_fill(col="hits_sum_diff_pc", style="fixed", palette=DIV_PALETTE, 
+              #n = 5,
+              breaks = bin_breaks,
+              legend.format=list(list(digits=0))) + #quantile , 
+      #tm_scale_bar(width=0.15,position=c("left","bottom")) +   
+      #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+      tm_layout(frame=FALSE,title = tit,legend.position = c('right','bottom'), title.size = 1) + tm_legend(scale=0.75) +
+      #tm_text(text = "ISO_A2",size = 0.1) +
+      my_scale_bar() + 
+      tm_borders(col = 'white',lty = 1.1)
+    
+  save_tmap(gtrends_map,fn)
+})
+
+rm(bin_breaks)
+
+rm(gt_df_quart_sum_diff2017,gt_df_quart_sum_10y,gt_df,gt_df_quart,gt_df_quart_diff)
+```
+
+## Growth maps between GM
+
+```{r}
+# load dataset
+gtgm = read_csv('data/targetqueries/GT.csv')
+gtgm$geotype = as.factor( substr(gtgm$id,0,2) )
+gtgm$year = as.numeric( substr(gtgm$datetime,0,4) )
+gtgm = subset(gtgm,gtgm$year >= 2007 & gtgm$year <= 2017)
+# keep only GMs and not WKs
+gtgm = subset(gtgm, gtgm$geotype=='GM')
+nrow(gtgm)
+summary(gtgm)
+gtgmyear_df = FUN_subgroups(gtgm, c('id','year'), function(block){
+  row = data.frame(
+    geocode = unique(block$id),
+    geoname = unique(block$name),
+    year = unique(block$year),
+    reference_term = unique(block$reference),
+    gt_max = max(block$GTvalue),
+    gt_sum = sum(block$GTvalue)
+  )
+  row
+})
+View(gtgmyear_df)
+writexl::write_xlsx(gtgmyear_df,paste0(OUT_DIR,'gt_gm_betweengm_sum_year_amsterdam.xlsx'))
+
+# generate maps from gtgmyear_df (yearly)
+FUN_subgroups(gtgmyear_df, c('year'), function(block){
+  map_label = '[Interest map]'
+  # filter Amsterdam out
+  block = subset(block,block$geocode != 'GM0363')
+  binning = "quantile"
+  tit = paste(map_label,'period:', unique(block$year),'; binning:',binning,'; base term: Amsterdam; mode: string')
+  fn = paste0(OUT_DIR,'gm_trend_map-between_gm','-',unique(block$year),'-',binning,'-amsterdam_term.pdf')
+  print(fn)
+  print(nrow(block))
+  #stopifnot(nrow(ams_gm_sdf_simpl)==nrow(block))
+  
+  gm_gtrends_sdf = merge(ams_gm_sdf_simpl, block, by.x='CODE', by.y='geocode', all.x=T)
+  #stopifnot(nrow(gm_gtrends_sdf)==nrow(block))
+  # palette_explorer()
+  gtrends_map <- add_nl_basemap(gm_gtrends_sdf) + 
+    tm_shape(gm_gtrends_sdf,'black') +
+    tm_fill(col="gt_sum", style=binning, palette="Blues", n = 5) + #quantile , PRGn
+    #tm_scale_bar(width=0.15,position=c("left","bottom")) +
+    #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+    tm_layout(frame=FALSE,title = tit,legend.position = c('right','bottom'), title.size = 1) + tm_legend(scale=0.75) + my_scale_bar() +
+    #tm_text(text = "ISO_A2",size = 0.1) +
+    tm_borders(col = 'white', lty = 1.3) +
+    tm_text('NAME',size = 0.65)
+    
+  save_tmap(gtrends_map,fn)
+})
+
+# difference in each GM (between GM)
+gtgmyear_diff_df = FUN_subgroups(gtgmyear_df, c('geocode'), function(block){
+  block = sort_df(block,'year')
+  firstlast = block[c(1,nrow(block)),c('gt_sum')]
+  #print(firstlast)
+  gt_diff = firstlast[2]-firstlast[1]
+  row = data.frame(
+    geocode = unique(block$geocode),
+    geoname = unique(block$geoname),
+    year = '2007-2017',
+    reference_term = unique(block$reference_term),
+    gt_all_max = max(block$gt_max),
+    gt_all_sum = sum(block$gt_sum),
+    gt_all_sum = sum(block$gt_sum),
+    gt_all_sd = round(sd(block$gt_sum),2),
+    gt_sum_first_year = firstlast[1],
+    gt_sum_last_year = firstlast[2],
+    gt_diff = round(gt_diff,2)
+  )
+  row
+})
+View(gtgmyear_diff_df)
+gtgmyear_diff_df$gt_all_sum.1 = NULL
+writexl::write_xlsx(gtgmyear_diff_df,paste0(OUT_DIR,'gt_gm_betweengm_sum_year_amsterdam.xlsx'))
+
+# generate maps from gtgmyear_df (overall change, 1 map)
+FUN_subgroups(gtgmyear_diff_df, c('year'), function(block){
+  map_label = '[Growth map]'
+  # filter Amsterdam out
+  block = subset(block,block$geocode != 'GM0363')
+  #print(nrow(block))
+  binning = "equal" # quantile
+  tit = paste(map_label,'per:', unique(block$year),'; bin:',binning,'; bstrm: Amsterdam; mode: str')
+  fn = paste0(OUT_DIR,'gm_trend_map-between_gm','-',unique(block$year),'-',binning,'-amsterdam_term-diff.pdf')
+  print(fn)
+  #print(nrow(block))
+  #stopifnot(nrow(ams_gm_sdf_simpl)==nrow(block))
+  
+  gm_gtrends_sdf = merge(ams_gm_sdf_simpl, block, by.x='CODE', by.y='geocode', all.x=T)
+  #stopifnot(nrow(gm_gtrends_sdf)==nrow(block))
+  # palette_explorer()
+  gtrends_map <- add_nl_basemap(gm_gtrends_sdf) + tm_shape(gm_gtrends_sdf) +
+      tm_fill(col="gt_diff", style=binning, palette="PRGn", n = 5) + #quantile , PRGn
+      #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+      tm_layout(frame=FALSE,title = tit,legend.position = c('right','bottom'), title.size = 1) +
+      tm_legend(scale=0.75) + 
+      my_scale_bar() +
+      #tm_text(text = "ISO_A2",size = 0.1) +
+      tm_borders(col = CHORO_BORDER_COL,lty = 1.3)
+    
+  save_tmap(gtrends_map,fn)
+})
+
+# bivariate pop vs gtrends 2017
+df = gtgmyear_diff_df
+df$gt_sum_2017 = df$gt_sum_last_year
+sdf = merge(ams_gm_sdf_simpl, df, by.x='CODE', by.y='geocode', all.x=T)
+names(sdf)
+nrow(sdf)
+fn = paste0(OUT_DIR,'gm_trend_map-between_gm-2017-pop_vs_gtrends-quantile.pdf')
+bivariate.choropleth(fn, sdf, c('gt_sum_2017','tot_pop'),
+                     c('GTrends idx 2017','Population'), 'quantile')
+
+#fn = paste0(OUT_DIR,'gm_trend_map-between_gm-2017-pop_vs_gtrends-jenks.pdf')
+#bivariate.choropleth(fn, sdf, c('gt_sum_2017','tot_pop'),c('GTrends idx 2017','Population'), 'jenks')
+
+# gtrends interest per 100k people (2017)
+sdf$gt_per100kppl = sdf$gt_sum_2017 / (sdf$tot_pop/100000)
+
+for (c in c('gt_per100kppl','gt_sum_2017','tot_pop')){
+  m <- add_nl_basemap(sdf) + tm_shape(sdf) +
+      tm_fill(col=c, style='quantile', palette="Blues", n = 5) + #quantile , PRGn
+      #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+      tm_layout(frame=FALSE,title = paste0(c,' (2017)'),legend.position = c('right','bottom'), title.size = 1) +
+      tm_legend(scale=0.75) + my_scale_bar() +
+      #tm_text(text = "ISO_A2",size = 0.1) +
+      tm_borders(col = 'white',lty = 1.3)
+  save_tmap(m, paste0(OUT_DIR,'gm_trend_map-between_gm-2017-',c,'.pdf'))
+  rm(m,c)
+}
+
+# write dataset
+writexl::write_xlsx(sdf@data, paste0(OUT_DIR,'gm_trend_map-between_gm-2017-pop_vs_gtrends.xlsx'))
+
+rm(df,sdf,fn)
+```
+
+# Analyse NL global flow data
+
+## GTrends bar charts
+```{r}
+
+google_countries_df = readRDS('data/google/google_country_names_ISO.rds')
+
+gt_countries = readRDS( 'data/NL_gtrends/NL_gtrends_2018-11-07/nl_amsterdam_countries_over_time_df.rds' )
+nrow(gt_countries)
+gt_countries$hits = parse_gt_hits(gt_countries$hits)
+gt_countries$year = as.factor(gt_countries$year)
+gt_countries$keyword = as.factor(gt_countries$keyword)
+gt_countries$origin_country = as.factor(gt_countries$location)
+gt_countries$location = NULL
+
+# merge with Google labels to get ISO2 country codes
+m = merge(gt_countries, google_countries_df, by.x="origin_country",by.y="GOOGLE_NAME",all.x=T)
+m$origin_country_iso2 = m$ISO_A2
+m$ISO_A2 = NULL
+#summary(m)
+stopifnot(nrow(m)==nrow(gt_countries))
+gt_countries = m
+rm(m)
+# asinh is similar to log but works with 0 values
+gt_countries$hits_asinh = round(asinh(gt_countries$hits),3)
+
+#summary(gt_countries$hits_log)
+
+summary(gt_countries)
+
+# create output folder
+outdir = 'tmp/NL_global_gtrends_flows/'
+unlink(paste0(outdir,'*'))
+dir.create(outdir, showWarnings = FALSE)
+
+# summary stats
+
+# add country data
+m = merge(gt_countries, countries_data, by.x='origin_country_iso2', by.y='ISO_A2',all.x=T )
+
+gen_barchart = function( df, targetvar, measure ){
+  fn = paste0( OUT_DIR, 'nl_global_sum_barchart_',targetvar,'-',measure,'.pdf' )
+  print(fn)
+  #print(names(df))
+  
+  df$VAL = as.factor(as.character(df$VAL))
+  p<-ggplot(data=df, aes_string(x='VAL', y=measure, fill='keyword')) +
+    ggtitle(paste('Google Trends (global) by',targetvar,'-',measure),
+      subtitle = "All years. F/T refers to low_search_volume option")+
+    geom_bar(stat = 'identity', position=position_dodge())+
+    #theme_minimal() +
+    theme_light()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    facet_grid(. ~ low_search_volume)
+  
+  ggsave(fn,p,width = 7, height = 6)
+  #View(df)
+}
+
+# summary by continent
+summarise_gt_countries = function( mdf, target_var, target_year ){
+  #print(paste(target_var,target_year))
+  stopifnot(FUN_col_exists(mdf,'year'))
+  stopifnot(!FUN_col_exists(mdf,'YEAR'))
+  cols = c("keyword", "low_search_volume", target_var)
+  if (target_year!='all'){
+    n = nrow(mdf)
+    #print(unique(mdf$year))
+    mdf = subset(mdf, mdf$year == target_year)
+    stopifnot(n>nrow(mdf), nrow(mdf)>0)
+  }
+  
+  if (target_var == 'EU_COUNTRY'){
+    mdf = subset(mdf, !is.na(mdf$EU_COUNTRY))
+  }
+  
+  sum_df = mdf %>%
+    group_by( .dots = cols ) %>%
+    summarise(
+      n = n(),
+      hits_min = min(hits, na.rm = T),
+      hits_mean = round(mean(hits, na.rm = T),3),
+      hits_median = median(hits, na.rm = T),
+      hits_max = max(hits, na.rm = T),
+      hits_sum = sum(hits, na.rm = T),
+      hits_asinh_mean = round(mean(hits_asinh, na.rm = T),3),
+      hits_asinh_sum = sum(hits_asinh, na.rm = T)
+    )
+  names(sum_df)[3] = 'VAL'
+  sum_df$VAR = target_var
+  sum_df$YEAR = target_year
+  sum_df$UID = UUIDgenerate()
+  stopifnot(nrow(sum_df)>0,ncol(sum_df)==14)
+  rm(cols)
+  #View(sum_df)
+  #print(typeof(sum_df))
+  sum_df = sum_df[,c("keyword","low_search_volume","YEAR","VAR","VAL",
+                     "n","hits_min","hits_mean","hits_median",
+                     "hits_max","hits_sum",'hits_asinh_mean','hits_asinh_sum',
+                     'UID')]
+  df = as.data.frame(sum_df)
+  return( df )
+}
+
+# add EU country as a group
+m$EU_COUNTRY = NA
+m$EU_COUNTRY = m$origin_country_iso2 %in% EU_COUNTRIES
+m$EU_COUNTRY = ifelse(m$EU_COUNTRY, as.character(m$origin_country_iso2), NA)
+m$EU_COUNTRY = as.factor(m$EU_COUNTRY)
+
+countries_gt_summary_df = data.frame()
+names(m)
+# IMPORTANT: filter data out for analysis 
+m = subset(m, m$low_search_volume == F)
+m = subset(m, m$CONTINENT!='Antarctica' & !is.na(m$CONTINENT) & 
+             m$CONTINENT!='Seven seas (open ocean)')
+stopifnot(nrow(m)>0)
+
+group_vars = c('CONTINENT','REGION_WB','INCOME_GRP','REGION_UN',"SUBREGION",'EU_COUNTRY')
+measures = c('hits_sum','hits_mean','hits_asinh_sum','hits_asinh_mean')
+#for(v in c('CONTINENT')){
+for(v in group_vars){
+for(meas in measures){
+for(y in c('all',seq(2007,2017))){
+  #print(paste(v,y))
+  df = summarise_gt_countries(m,v,y)
+  
+  # generate plots
+  if (y=='all') gen_barchart(df, v, meas)
+  
+  #print(names(df))
+  #View(df)
+  countries_gt_summary_df = rbind(countries_gt_summary_df, df)
+  rm(df)
+}}}
+
+gen_linechart = function( df, targetvar, measure ){
+  fn = paste0( OUT_DIR, 'nl_global_time_linechart_',targetvar,'-',measure,'.pdf' )
+  df$YEAR = as.factor(as.numeric(df$YEAR))
+  print(fn)
+  #print(summary(df))
+  #View(df)
+  df$VAL = as.factor(as.character(df$VAL))
+  #View(df)
+  p<-ggplot(data=df, aes_string(x='YEAR', y=measure, group='VAL', color='VAL', linetype='VAL')) +
+    ggtitle(paste('Google Trends (yearly interest) by',targetvar,' - ',measure),
+      subtitle = "Yearly summary. F/T refers to low_search_volume option")+
+    geom_line()+
+    #theme_minimal() +
+    theme_light()+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    facet_grid(keyword ~ low_search_volume)
+    
+  ggsave(fn,p,width = 10, height = 6)
+}
+
+# generate time charts
+for(meas in measures){
+for(v in group_vars){
+#for(v in c('CONTINENT')){
+  df = subset(countries_gt_summary_df,
+              countries_gt_summary_df$VAR==v &
+              countries_gt_summary_df$YEAR!='all')
+  gen_linechart(df, v, meas)
+}}
+
+summary(countries_gt_summary_df)
+View( countries_gt_summary_df )
+
+save_results(countries_gt_summary_df,'nl_gt_global_groups')
+
+rm(group_vars)
+```
+
+## World maps by year
+
+```{r}
+# Maps by year
+gt_countries_nonz = subset(gt_countries, gt_countries$hits > 0)
+#bin_breaks = classIntervals(gt_countries$hits_asinh, 5)$brks
+bin_breaks = classIntervals(gt_countries_nonz$hits_asinh, 4, style = 'quantile')$brks
+#bin_breaks = classIntervals(gt_countries$hits_asinh, 4, style = 'equal')$brks
+
+FUN_subgroups( gt_countries_nonz, c('year','keyword','low_search_volume'), function(df){
+  y = unique(df$year)
+  if (!(y %in% c(2007,2012,2017))) return(NULL)
+  #df = unique(df)
+  kw = unique(df$keyword)
+  low = unique(df$low_search_volume)
+  #View(df)
+  mdf = merge(countries_sdf_simpl, df,
+              by.x='ISO_A2', by.y='origin_country_iso2', all.x=T )
+  fn = paste0(outdir,'gtrends_countries_map-',low,'-',kw,'-',y)
+  print(fn)
+  
+  border_width = 1
+  missing_col = "grey90"
+  # MAP without labels (for paper)
+  gtrends_map <- tm_shape(mdf) +
+    tm_fill(col="hits_asinh", style="fixed", palette="Blues", breaks = bin_breaks,
+            legend.format=list(list(digits=1)), colorNA = missing_col) +
+              #quantile , 
+    #tm_scale_bar(width=0.15,position=c("left","bottom")) +   
+    #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+    tm_layout(frame=FALSE) + tm_legend(scale=0.75) +
+    tm_borders(col = 'white',lty = border_width)
+  
+  save_tmap(gtrends_map, paste0(fn,'.pdf'))
+  df = sort_df(df,'hits',F)
+  write_tsv(df,paste0(fn,'-data.tsv'))
+  
+  # MAP with labels
+  gtrends_map <- tm_shape(mdf) +
+    tm_fill(col="hits_asinh", style="equal", palette="Blues", colorNA = missing_col) + #quantile , 
+    #tm_scale_bar(width=0.15,position=c("left","bottom")) +   
+    #tm_credits("\n\n\n\n\nContains data from Office for National Statistics\nand Ordnance Survey. Crown copyright & database right 2016.",size=0.6,position=c("left","bottom")) + 
+    tm_layout(frame=FALSE) + tm_legend(scale=0.75) +
+    tm_text(text = "ISO_A2",size = 0.2) +
+    tm_borders(col = 'white',lty = border_width)
+  print(fn)
+  save_tmap(gtrends_map,paste0(fn,'-labels.pdf'))
+  
+  rm(df,mdf,gtrends_map)
+})
+
+rm(bin_breaks)
+```
+
+## NL hotel global data
+```{r}
+# load data
+nl_hotels = read_delim('data/NL_tourism/Hotels__guests_regi_071118233537.csv',delim = ';')
+nl_hotels$Periods = NULL
+nl_hotels$X1 = NULL
+#View(nl_hotels)
+names(nl_hotels)[1]='source_country'
+names(nl_hotels)
+vals = nl_hotels[c(1), ]
+nl_hotels = nl_hotels[-c(1), ]
+nl_hotels_m = melt(nl_hotels,id.vars = 'source_country')
+nl_hotels_m$value = as.numeric(nl_hotels_m$value)
+nl_hotels_m$am = grepl('_1',nl_hotels_m$variable)
+nl_hotels_m$year = as.factor(gsub('_1','',nl_hotels_m$variable))
+nl_hotels_m$variable = NULL
+nl_hotels_m$destination = ifelse(nl_hotels_m$am,'Amsterdam','Netherlands')
+nl_hotels_m$am = NULL
+nl_hotels_m$visitor_n = nl_hotels_m$value
+nl_hotels_m$value = NULL
+nl_hotels = nl_hotels_m
+rm(nl_hotels_m)
+#View(nl_hotels)
+
+# match countries
+if (F){
+  google_countries_df = readRDS('data/google/google_country_names_ISO.rds')
+  m = merge(nl_hotels,google_countries_df,by.x='source_country',by.y='GOOGLE_NAME',all.x=T)
+  View(m)
+  write_csv( subset(m,m$year == 2015 & m$destination == 'NL')[,c('source_country','ISO_A2')], 'tmp/nl_hotels_names_to_complete.csv', na = '' )
+  rm(m)
+}
+nl_hotels_country_codes = read_csv('data/NL_tourism/nl_hotels_country_codes.csv')
+names(nl_hotels); names(nl_hotels_country_codes)
+nl_hotels = merge( nl_hotels, nl_hotels_country_codes,
+                   by.x='source_country','source_country',all.x=T )
+names(nl_hotels)[5]='source_country_iso2'
+# ====
+# match hotel data vs gtrends
+# ====
+gtdf = gt_countries
+stopifnot(nrow(gtdf)>0)
+names(nl_hotels); names(gtdf)
+summary(nl_hotels); summary(gtdf)
+print(length(unique(nl_hotels$source_country))) # n countries
+
+m = merge(nl_hotels, gtdf, by.x=c('source_country_iso2','year','destination'),
+          by.y=c('origin_country_iso2','year','keyword'),all=F)
+
+m$source_country_iso2 = as.factor(m$source_country_iso2)
+m$destination = as.factor(m$destination)
+m$year = as.factor(m$year)
+m$visitor_n_z = round(scale(m$visitor_n),4)
+m$hits_z = round(scale(m$hits),4)
+m = subset(m, !is.na(m$source_country_iso2))
+print(length(unique(m$source_country_iso2)))
+
+nl_hotels_gt = m
+rm(m)
+
+summary(nl_hotels_gt)
+print(nrow(nl_hotels_gt))
+
+# -----
+# Find global correlations 
+# -----
+corrdf <- FUN_subgroups(nl_hotels_gt, c("low_search_volume",'destination'), function(block){
+  # correlation
+  print(nrow(block))
+  c = cor.test(x=block$hits_z, y=block$visitor_n_z, method='kendall', 
+               alternative ="two.sided")
+  print(names(c))
+  gt_ties = length(unique(block$hits))
+  print(summary(block$hits))
+  row = data.frame(
+    search_origin = 'world',
+    years = paste(unique(block$year), collapse = ' '),
+    low_search_volume = unique(block$low_search_volume)[1],
+    destination = unique(block$destination)[1],
+    N = nrow(block),
+    gt_unique_vals = gt_ties,
+    hotel_unique_vals = length(unique(block$visitor_n)),
+    corr_tau = round(c$estimate[[1]],2),
+    pvalue = round(c$p.value,5),
+    pvalue_signif = stars.pval(c$p.value)
+    #CI_low = NA,
+    #CI_high = NA
+  )
+  # plot
+  tit = paste('source country = all',row$source_country, 
+                  '; low volume =',row$low_search_volume,
+                  '; target =',row$destination,'; tau =',row$corr_tau)
+  p = ggplot(block, aes(x=hits_asinh, y=visitor_n)) + geom_point(alpha=.2) +
+    ggtitle('GTrends vs Hotel', subtitle = tit) + theme_light()
+  ggsave(paste0(OUT_DIR,'gt_global_nl_correl-scatterplot-',row$destination,'-',row$low_search_volume,'-all_years.pdf'), p)
+  return(row)
+})
+#View(corrdf)
+writexl::write_xlsx(corrdf,paste0(OUT_DIR,'gt_global_nl_correl.xlsx'))
+
+# -----
+# Find global correlations per year
+# -----
+corryear_df <- FUN_subgroups(nl_hotels_gt, c("low_search_volume",'destination','year'), function(block){
+  # correlation
+  c = cor.test(x=block$hits_z, y=block$visitor_n_z, method='kendall')
+  #print('ginello')
+  #print(summary(block))
+  
+  #gt_ties = length(x=block$hits) - length(unique(block$hits)) 
+  print(summary(block$hits))
+  row = data.frame(
+    search_origin = 'world',
+    year = unique(block$year),
+    low_search_volume = unique(block$low_search_volume)[1],
+    destination = unique(block$destination)[1],
+    N = nrow(block),
+    #gt_ties = gt_ties,
+    corr_tau = round(c$estimate[[1]],2),
+    pvalue = round(c$p.value,5),
+    pvalue_signif = stars.pval(c$p.value)
+    #CI_low = NA,
+    #CI_high = NA
+  )
+  # plot
+  tit = paste('source country = all',row$source_country, 
+                  '; low volume =',row$low_search_volume,
+                  '; target =',row$destination,'; tau =',row$corr_tau)
+  p = ggplot(block, aes(x=hits_asinh, y=visitor_n)) + geom_point(alpha=.2) +
+    ggtitle('GTrends vs Hotel', subtitle = tit) + theme_light()
+  ggsave(paste0(OUT_DIR,'gt_global_nl_correl-scatterplot-',
+                row$destination,'-',row$low_search_volume,'-',row$year,'.pdf'), p)
+  return(row)
+})
+writexl::write_xlsx(corryear_df,paste0(OUT_DIR,'gt_global_nl_correl_by_year.xlsx'))
+
+# -----
+# Find correlations per country
+# -----
+corrcountry_df <- FUN_subgroups(nl_hotels_gt, c("low_search_volume",'destination','source_country'), function(block){
+  return(NULL)
+  # correlation
+  c = cor.test(x=block$hits, y=block$visitor_n, method='kendall')
+  gt_ties = length(x=block$hits) - length(unique(block$hits)) 
+  #print(summary(block$hits))
+  row = data.frame(
+    source_country = unique(block$source_country),
+    source_country_iso2 = unique(block$source_country_iso2),
+    years = paste(unique(block$year), collapse = ' '),
+    low_search_volume = unique(block$low_search_volume)[1],
+    destination = unique(block$destination)[1],
+    N = nrow(block),
+    gt_ties = gt_ties,
+    corr_tau = round(c$estimate[[1]],2),
+    pvalue = round(c$p.value,5),
+    pvalue_signif = stars.pval(c$p.value)
+    #CI_low = NA,
+    #CI_high = NA
+  )
+  # plot
+  #tit = paste('source country = all',row$source_country, 
+  #                '; low volume =',row$low_search_volume,
+  #                '; target =',row$destination,'; tau =',row$corr_tau)
+  #p = ggplot(block, aes(x=hits_asinh, y=visitor_n)) + geom_point(alpha=.2) +
+  #  ggtitle('GTrends vs Hotel', subtitle = tit) + theme_light()
+  #ggsave(paste0(OUT_DIR,'gt_global_nl_correl-scatterplot-country-',row$source_country_iso2,'-',row$destination,'-',row$low_search_volume,'.pdf'), p)
+  return(row)
+})
+#View(corrcountry_df)
+#writexl::write_xlsx(corrcountry_df,paste0(OUT_DIR,'gt_global_nl_correl_by_country.xlsx'))
+
+rm(corrcountry_df,corrcountrysumm_df,corryear_df,corrdf)
+
+# ----
+# Show global aggregations over time: hotel vs gtrends
+# ----
+
+# hotels by continents
+unique(nl_hotels$source_country_iso2)
+sort(unique(nl_hotels$source_country))
+continents = c('Africa','Europe','Oceania','Asia', 'America') #
+nl_hotels_cont = subset( nl_hotels, nl_hotels$source_country_iso2 %in% continents)
+#View(nl_hotels_cont)
+
+gen_hotel_linechart = function( df ){
+  df = subset(df,df$destination=='Amsterdam')
+  fn = paste0( OUT_DIR, 'nl_hotel_visits_linechart_by_continent','','.pdf' )
+  df$year = as.factor(df$year)
+  print(fn)
+  #print(summary(df))
+  #View(df)
+  #df$VAL = as.factor(as.character(df$VAL))
+  #View(df)
+  p<-ggplot(data=df, aes_string(x='year', y='visitor_n', 
+                                group='source_country_iso2', 
+                                color='source_country_iso2', linetype='source_country_iso2')) +
+    ggtitle(paste('Hotel stays (x1000) by continent'),subtitle = "")+
+    geom_line()+
+    #theme_minimal() +
+    theme_light()+
+    theme() #+ # axis.text.x = element_text(angle = 0, hjust = 1)
+    #facet_grid(. ~ destination)
+    
+  ggsave(fn,p,width = 5.5, height = 4)
+}
+
+gen_hotel_linechart(nl_hotels_cont)
+
+# find GTrends comparable with the hotel data
+
+# gtrends by continents
+stopifnot(nrow(countries_gt_summary_df)>0)
+gt_continents = c('Africa','Europe','Oceania','Asia', 'North America','South America') #
+
+gt_cont = subset(countries_gt_summary_df,countries_gt_summary_df$VAR=='CONTINENT' & 
+                   countries_gt_summary_df$VAL %in% gt_continents)
+gt_cont$hits_min = NULL
+gt_cont$hits_mean = NULL
+gt_cont$hits_max = NULL
+gt_cont$hits_asinh_mean = NULL
+gt_cont$hits_median = NULL
+
+gt_cont_m = FUN_subgroups(gt_cont, c('keyword','low_search_volume','YEAR','UID'), function(block){
+  # merge south and north america into 'America'
+  block = unique(block)
+  b = subset(block, block$VAL %in% c('North America','South America'))
+  #print(block)
+  stopifnot(nrow(b)==2)
+  b$VAL = as.character(b$VAL)
+  stopifnot(nrow(b)>0)
+  bb = b[1,]
+  bb$hits_sum = sum(b$hits_sum)
+  bb$hits_asinh_sum = sum(b$hits_asinh_sum)
+  bb$n = sum(b$n)
+  bb$VAL = 'America'
+  bnot = subset(block, !(block$VAL %in% c('North America','South America')))
+  stopifnot(nrow(bnot)>0)
+  bb = rbind(bnot, bb)
+  rm(b,bnot,block)
+  return(bb)
+})
+summary(gt_cont_m)
+gt_cont_m$continent = gt_cont_m$VAL
+gt_cont_m$VAL = NULL
+unique(gt_cont_m$continent)
+#View(gt_cont_m)
+
+# merge hotel with gc_cont_m
+names(nl_hotels_cont); names(gt_cont_m)
+gt_cont_m$UID = NULL
+m = unique(merge(nl_hotels_cont, gt_cont_m, by.x=c('source_country_iso2','year','destination'),
+          by.y=c('continent','YEAR','keyword'), all=F))
+summary(m)
+hotels_gtrends_by_continent = m
+rm(m)
+writexl::write_xlsx(hotels_gtrends_by_continent, paste0(OUT_DIR,'hotels_gtrends_by_continent.xlsx'))
+
+# plot hotels vs gtrends by continent
+
+gen_hotel_gtrends_continent_linechart = function( df ){
+  df = subset(df, df$destination=='Amsterdam' & df$low_search_volume==F)
+  fn = paste0( OUT_DIR, 'nl_hotel_gtrends_linechart_by_continent','','.pdf' )
+  df$year = as.factor(df$year)
+  print(fn)
+  p<-ggplot(data=df, aes_string(x='year', y='hits_asinh_sum', group='source_country_iso2', 
+                                color='source_country_iso2', linetype='source_country_iso2')) +
+    ggtitle(paste('Google Trends index (between continents)'),subtitle = "")+
+    geom_line()+
+    #theme_minimal() +
+    theme_light()
+    #theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    #+ facet_grid(destination ~ low_search_volume)
+    
+  ggsave(fn,p,width = 5.5, height = 4)
+}
+
+gen_hotel_gtrends_continent_linechart( hotels_gtrends_by_continent )
+
+```

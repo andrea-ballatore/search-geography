@@ -1,0 +1,53 @@
+[1] 1426
+     name                id           
+ Length:1426        Length:1426       
+ Class :character   Class :character  
+ Mode  :character   Mode  :character  
+OGR data source with driver: ESRI Shapefile 
+Source: "/home/andrea/Dropbox/DRBX_Docs/Work/Projects/github_projects/GISTrends/GoogleTrendsTourism/geodata/MetropolregionA.shp", layer: "MetropolregionA"
+with 33 features
+It has 33 fields
+OGR data source with driver: ESRI Shapefile 
+Source: "/home/andrea/Dropbox/DRBX_Docs/Work/Projects/github_projects/GISTrends/GoogleTrendsTourism/geodata/MetrAWijk.shp", layer: "MetrAWijk"
+with 352 features
+It has 36 fields
+OGR data source with driver: ESRI Shapefile 
+Source: "/home/andrea/Dropbox/DRBX_Docs/Work/Projects/github_projects/GISTrends/GoogleTrendsTourism/geodata/MetrABuurt.shp", layer: "MetrABuurt"
+with 1517 features
+It has 39 fields
+[1] ">> get_gtrends_amsterdam N= 33 geo_type= municipality"
+[1] "i = 1"
+[1] "get_gtrends_amsterdam f391cdeb-3e74-4c82-9b1b-1cf76a6c35a8 GM0034 Almere"
+[1] "get_gtrends_results Amsterdam Almere"
+[1] "> Gtrends data found <"
+[1] "random_pause seconds = 1.8"
+[1] "i = 2"
+[1] "get_gtrends_amsterdam b8b9145a-b89e-49c2-9091-f4bd43f5a37f GM0358 Aalsmeer"
+[1] "get_gtrends_results Amsterdam Aalsmeer"
+<simpleError: widget$status_code == 200 is not TRUE>
+2: widget$status_code == 200 is not TRUE
+1: 
+[1] "Problem detected. Trying again, i = 1"
+[1] "random_pause seconds = 4"
+<simpleError: widget$status_code == 200 is not TRUE>
+2: widget$status_code == 200 is not TRUE
+1: 
+[1] "Problem detected. Trying again, i = 1"
+[1] "random_pause seconds = 3.7"
+<simpleError: widget$status_code == 200 is not TRUE>
+2: widget$status_code == 200 is not TRUE
+1: 
+[1] "Problem detected. Trying again, i = 1"
+[1] "random_pause seconds = 4.8"
+<simpleError: widget$status_code == 200 is not TRUE>
+2: widget$status_code == 200 is not TRUE
+1: 
+[1] "Problem detected. Trying again, i = 1"
+[1] "random_pause seconds = 3.3"
+<simpleError: widget$status_code == 200 is not TRUE>
+2: widget$status_code == 200 is not TRUE
+1: 
+[1] "Problem detected. Trying again, i = 1"
+[1] "random_pause seconds = 4.2"
+
+Execution halted

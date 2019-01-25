@@ -1,0 +1,282 @@
+﻿GEOUNIT_CODE,QUERY_BASETERM,keyword,GEOUNIT_TYPE,safe_keyword,GT_concept,,,
+GM0034,FALSE,Almere,municipality,Almere,%2Fm%2F0vh7g,,,
+GM0034,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0358,FALSE,Aalsmeer,municipality,Aalsmeer,%2Fm%2F0w06p,,,
+GM0358,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0362,FALSE,Amstelveen,municipality,Amstelveen,%2Fm%2F0w073,,,
+GM0362,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0363,FALSE,Amsterdam,municipality,Amsterdam,%2Fm%2F0k3p,,,
+GM0370,FALSE,Beemster,municipality,Beemster,%2Fm%2F0w08s,,,
+GM0370,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0375,FALSE,Beverwijk,municipality,Beverwijk,%2Fm%2F0w09z,,,
+GM0375,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0376,FALSE,Blaricum,municipality,Blaricum,%2Fm%2F0w0bq,,,
+GM0376,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0377,FALSE,Bloemendaal,municipality,Bloemendaal,%2Fm%2F0w0c3,,,
+GM0377,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0384,FALSE,Diemen,municipality,Diemen,%2Fm%2F0w0f0,,,
+GM0384,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0385,FALSE,Edam-Volendam,municipality,Edam-Volendam,%2Fm%2F0w0g6,,,
+GM0385,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0392,FALSE,Haarlem,municipality,Haarlem,%2Fm%2F0h095,,,
+GM0392,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0393,FALSE,Haarlemmerliede en Spaarnwoude,municipality,Haarlemmerliede en Spaarnwoude,%2Fm%2F0w0hx,,,
+GM0393,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0394,FALSE,Haarlemmermeer,municipality,Haarlemmermeer,%2Fm%2F0w0jp,,,
+GM0394,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0396,FALSE,Heemskerk,municipality,Heemskerk,%2Fm%2F0w0kv,,,
+GM0396,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0397,FALSE,Heemstede,municipality,Heemstede,%2Fm%2F0w0l7,,,
+GM0397,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0402,FALSE,Hilversum,municipality,Hilversum,%2Fm%2F03kfl,,,
+GM0402,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0406,FALSE,Huizen,municipality,Huizen,%2Fm%2F0w0nl,,,
+GM0406,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0415,FALSE,Landsmeer,municipality,Landsmeer,%2Fm%2F0w0pb,,,
+GM0415,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0417,FALSE,Laren,municipality,Laren,%2Fm%2F0w0qh,,,
+GM0417,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0431,FALSE,Oostzaan,municipality,Oostzaan,%2Fm%2F0w0vd,,,
+GM0431,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0437,FALSE,Ouder-Amstel,municipality,Ouder-Amstel,%2Fm%2F0w0wk,,,
+GM0437,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0439,FALSE,Purmerend,municipality,Purmerend,%2Fm%2F0w0x9,,,
+GM0439,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0450,FALSE,Uitgeest,municipality,Uitgeest,%2Fm%2F0w0_f,,,
+GM0450,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0451,FALSE,Uithoorn,municipality,Uithoorn,%2Fm%2F0w0_v,,,
+GM0451,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0453,FALSE,Velsen,municipality,Velsen,%2Fm%2F0w10k,,,
+GM0453,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0457,FALSE,Weesp,municipality,Weesp,%2Fm%2F0w12h,,,
+GM0457,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0473,FALSE,Zandvoort,municipality,Zandvoort,%2Fm%2F0w17f,,,
+GM0473,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0479,FALSE,Zaanstad,municipality,Zaanstad,%2Fm%2F0w170,,,
+GM0479,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0852,FALSE,Waterland,municipality,Waterland,%2Fm%2F0w11q,,,
+GM0852,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0880,FALSE,Wormerland,municipality,Wormerland,%2Fm%2F0w168,,,
+GM0880,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM0995,FALSE,Lelystad,municipality,Lelystad,%2Fm%2F0dg61,,,
+GM0995,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM1696,FALSE,Wijdemeren,municipality,Wijdemeren,%2Fm%2F0w154,,,
+GM1696,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+GM1942,FALSE,Gooise Meren,municipality,Bussum,%2Fm%2F0w0cw,,"This municipality is young, tehrefore we used the biggest wijk name that it contains (former municipality)",
+GM1942,TRUE,Amsterdam,municipality,261,70,84.1,83,100
+WK003401,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK003402,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK003403,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK003404,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK003405,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK003406,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK035800,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK035801,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK035802,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036201,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036202,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036203,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036204,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036205,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036206,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036207,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036208,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036209,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036210,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036211,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036212,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036213,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036214,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036300,FALSE,Burgwallen-Oude Zijde,quarter,,,,,
+WK036300,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036301,FALSE,Burgwallen-Nieuwe Zijde,quarter,,,,,
+WK036301,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036302,FALSE,Grachtengordel-West,quarter,,,,,
+WK036302,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036303,FALSE,Grachtengordel-Zuid,quarter,,,,,
+WK036303,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036304,FALSE,Nieuwmarkt/Lastage,quarter,,,,,
+WK036304,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036305,FALSE,Haarlemmerbuurt,quarter,,,,,
+WK036305,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036306,FALSE,Jordaan,quarter,,,,,
+WK036306,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036307,FALSE,De Weteringschans,quarter,,,,,
+WK036307,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036308,FALSE,Weesperbuurt/Plantage,quarter,,,,,
+WK036308,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036309,FALSE,Oostelijke Eilanden/Kadijken,quarter,,,,,
+WK036309,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036310,FALSE,Westelijk Havengebied,quarter,,,,,
+WK036310,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036311,FALSE,Bedrijventerrein Sloterdijk,quarter,,,,,
+WK036311,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036312,FALSE,Houthavens,quarter,Houthaven,%2Fm%2F0cc9xdm,,,
+WK036312,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036313,FALSE,Spaarndammer- en Zeeheldenbuurt,quarter,,,,,
+WK036313,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036314,FALSE,Staatsliedenbuurt,quarter,Staatsliedenbuurt,%2Fm%2F0cc9njn,,,
+WK036314,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036315,FALSE,Centrale Markt,quarter,,,,,
+WK036315,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036316,FALSE,Frederik Hendrikbuurt,quarter,Frederik Hendrikbuurt,%2Fm%2F0cc7bdj,,,
+WK036316,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036317,FALSE,Da Costabuurt,quarter,,,,,
+WK036317,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036318,FALSE,Kinkerbuurt,quarter,,,,,
+WK036318,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036319,FALSE,Van Lennepbuurt,quarter,,,,,
+WK036319,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036320,FALSE,Helmersbuurt,quarter,,,,,
+WK036320,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036321,FALSE,Overtoomse Sluis,quarter,Overtoombuurt,%2Fm%2F0cc94js,,,
+WK036321,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036322,FALSE,Vondelbuurt,quarter,,,,,
+WK036322,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036323,FALSE,Zuidas,quarter,,,,,
+WK036323,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036324,FALSE,Oude Pijp,quarter,,,,,
+WK036324,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036325,FALSE,Nieuwe Pijp,quarter,Nieuwe Pijp,%2Fm%2F0cc7t9d,,,
+WK036325,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036326,FALSE,Zuid Pijp,quarter,,,,,
+WK036326,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036327,FALSE,Weesperzijde,quarter,Weesperzijde,%2Fm%2F0cc8fcx,,,
+WK036327,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036328,FALSE,Oosterparkbuurt,quarter,Oosterparkbuurt,%2Fm%2F0cc8vcw,,,
+WK036328,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036329,FALSE,Dapperbuurt,quarter,,,,,
+WK036329,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036330,FALSE,Transvaalbuurt,quarter,Transvaalbuurt,%2Fm%2F0cc6by8,,,
+WK036330,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036331,FALSE,Indische Buurt West,quarter,Indische Buurt,%2Fm%2F057l51p,,,
+WK036331,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036332,FALSE,Indische Buurt Oost,quarter,Indische Buurt,%2Fm%2F057l51p,,,
+WK036332,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036333,FALSE,Oostelijk Havengebied,quarter,,,,,
+WK036333,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036335,FALSE,IJburg West,quarter,,,,,
+WK036335,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036336,FALSE,Sloterdijk,quarter,Sloterdijk,%2Fm%2F06mzpd,,,
+WK036336,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036337,FALSE,Landlust,quarter,Landlust,%2Fm%2F0cc60zg,,,
+WK036337,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036338,FALSE,Erasmuspark,quarter,,,,,
+WK036338,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036339,FALSE,De Kolenkit,quarter,De Kolenkit,%2Fm%2F05mr05y,,,
+WK036339,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036340,FALSE,Geuzenbuurt,quarter,,,,,
+WK036340,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036341,FALSE,Van Galenbuurt,quarter,,,,,
+WK036341,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036342,FALSE,Hoofdweg e.o.,quarter,,,,,
+WK036342,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036343,FALSE,Westindische Buurt,quarter,,,,,
+WK036343,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036344,FALSE,Hoofddorppleinbuurt,quarter,Hoofddorppleinbuurt,%2Fm%2F0bxz0g5,,,
+WK036344,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036345,FALSE,Schinkelbuurt,quarter,Schinkelbuurt,%2Fm%2F0cc8fck,,,
+WK036345,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036346,FALSE,Willemspark,quarter,Willemspark,%2Fm%2F0cc55vs,,,
+WK036346,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036347,FALSE,Museumkwartier,quarter,Museumkwartier,%2Fm%2F0cc5xtp,,,
+WK036347,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036348,FALSE,Stadionbuurt,quarter,,,,,
+WK036348,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036349,FALSE,Apollobuurt,quarter,,,,,
+WK036349,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036351,FALSE,IJburg Zuid,quarter,,,,,
+WK036351,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036352,FALSE,Scheldebuurt,quarter,,,,,
+WK036352,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036353,FALSE,IJselbuurt,quarter,,,,,
+WK036353,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036354,FALSE,Rijnbuurt,quarter,,,,,
+WK036354,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036355,FALSE,Frankendael,quarter,,,,,
+WK036355,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036356,FALSE,Middenmeer,quarter,,,,,
+WK036356,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036357,FALSE,Betondorp,quarter,,,,,
+WK036357,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036358,FALSE,Omval/Overamstel,quarter,,,,,
+WK036358,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036359,FALSE,Prinses Irenebuurt e.o.,quarter,,,,,
+WK036359,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036360,FALSE,Volewijck,quarter,,,,,
+WK036360,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036361,FALSE,IJplein/Vogelbuurt,quarter,,,,,
+WK036361,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036362,FALSE,Tuindorp Nieuwendam,quarter,Tuindorp Nieuwendam,%2Fm%2F0cc6jxl,,,
+WK036362,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036363,FALSE,Tuindorp Buiksloot,quarter,,,,,
+WK036363,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036364,FALSE,Nieuwendammerdijk/Buiksloterdijk,quarter,,,,,
+WK036364,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036365,FALSE,Tuindorp Oostzaan,quarter,Tuindorp Oostzaan,%2Fm%2F0cc78l_,,,
+WK036365,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036366,FALSE,Oostzanerwerf,quarter,Oostzanerwerf,%2Fm%2F0cc9nj9,,,
+WK036366,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036367,FALSE,Kadoelen,quarter,Kadoelen,%2Fm%2F0cc521g,,,
+WK036367,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036368,FALSE,Waterlandpleinbuurt,quarter,,,,,
+WK036368,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036369,FALSE,Buikslotermeer,quarter,,,,,
+WK036369,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036370,FALSE,Banne Buiksloot,quarter,,,,,
+WK036370,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036371,FALSE,Noordelijke IJ-oevers West,quarter,,,,,
+WK036371,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036372,FALSE,Noordelijke IJ-oevers Oost,quarter,,,,,
+WK036372,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036373,FALSE,Waterland,quarter,,,,,
+WK036373,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036374,FALSE,Elzenhagen,quarter,,,,,
+WK036374,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036375,FALSE,Chassebuurt,quarter,,,,,
+WK036375,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036376,FALSE,Slotermeer-Noordoost,quarter,,,,,
+WK036376,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036377,FALSE,Slotermeer-Zuidwest,quarter,,,,,
+WK036377,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036378,FALSE,Geuzenveld,quarter,,,,,
+WK036378,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036379,FALSE,Eendracht,quarter,,,,,
+WK036379,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036380,FALSE,Lutkemeer/Ookmeer,quarter,,,,,
+WK036380,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036381,FALSE,Osdorp-Oost,quarter,,,,,
+WK036381,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036382,FALSE,Osdorp-Midden,quarter,,,,,
+WK036382,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036383,FALSE,De Punt,quarter,,,,,
+WK036383,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036384,FALSE,Middelveldsche Akerpolder,quarter,,,,,
+WK036384,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036385,FALSE,Slotervaart Noord,quarter,,,,,
+WK036385,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036386,FALSE,Overtoomse Veld,quarter,,,,,
+WK036386,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036387,FALSE,Westlandgracht,quarter,,,,,
+WK036387,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036388,FALSE,Sloter-/Riekerpolder,quarter,,,,,
+WK036388,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036389,FALSE,Slotervaart Zuid,quarter,,,,,
+WK036389,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036390,FALSE,Buitenveldert-West,quarter,,,,,
+WK036390,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036391,FALSE,Buitenveldert-Oost,quarter,,,,,
+WK036391,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036392,FALSE,Amstel III/Bullewijk,quarter,,,,,
+WK036392,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036393,FALSE,"Bijlmer Centrum (D,F,H)",quarter,,,,,
+WK036393,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036394,FALSE,"Bijlmer Oost (E,G,K)",quarter,,,,,
+WK036394,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036395,FALSE,Nellestein,quarter,,,,,
+WK036395,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036396,FALSE,Holendrecht/Reigersbos,quarter,,,,,
+WK036396,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036397,FALSE,Gein,quarter,,,,,
+WK036397,TRUE,Amsterdam,quarter,261,70,84.1,83,100
+WK036398,FALSE,Driemond,quarter,Driemond,%2Fm%2F0bwjhy,,,

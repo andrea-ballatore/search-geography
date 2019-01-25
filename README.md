@@ -1,4 +1,4 @@
-Search Engine Geography
+Search Engine Geographies
 =============================================
 This repository contains tools and datasets about search engine geography
 by [Andrea Ballatore](http://aballatore.space) and colleagues.
